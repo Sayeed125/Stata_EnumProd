@@ -26,8 +26,8 @@ Compute daily survey productivity by enumerator and supervisor, reshape results,
 {title:Example}
 
 {pstd}
-. use mydata, clear  
-. enumprod using "daily_counts.xlsx", starttime(starttime) sup(supervisor) enum(enumerator)
+. use survey_data, clear  
+. enumprod using "daily_counts.xlsx", starttime(starttime) sup(supervisor_name) enum(enumerator_name) consent(consent)
 
 {title:Saved results}
 
@@ -37,5 +37,7 @@ Compute daily survey productivity by enumerator and supervisor, reshape results,
 {title:Author}
 
 {pstd}
-Sayeed  
+Md. Abu Sayeed 
+Senior Data Analyst
+sayeedahmed880@gmail.com
 Development Research Initiative
