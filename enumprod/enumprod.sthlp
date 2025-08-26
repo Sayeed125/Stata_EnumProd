@@ -37,7 +37,17 @@ Compute daily survey productivity by enumerator and supervisor, reshape results,
 {title:Author}
 
 {pstd}
-Md. Abu Sayeed 
+Md. Abu Sayeed
+
+{pstd}
 Senior Data Analyst
-sayeedahmed880@gmail.com
-Development Research Initiative
+
+{pstd}
+Email:sayeedahmed880@gmail.com
+
+{pstd}
+WhatsApp:01712237013
+
+{pstd}
+Development Research Initiative(dRi)
+
