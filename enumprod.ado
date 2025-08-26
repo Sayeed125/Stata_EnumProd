@@ -1,6 +1,6 @@
 *! enumprod.ado
 *! Enumerator daily productivity (counts per day by enumerator, exported + shown in Results)
-*! Version 1.2, Author: Sayeed
+*! Version 1.3, Author: Sayeed
 version 17.0
 
 program define enumprod, rclass
@@ -76,21 +76,26 @@ program define enumprod, rclass
             label var `safe' "`dlabel'"
         }
 
-        // --- New: total and average per enumerator ---
-        gen total_surveys = 0
-        foreach v of varlist daily_average* {
-            replace total_surveys = total_surveys + `v'
-        }
+        // --- New: total and average per enumerator (only if daily columns exist) ---
+        ds daily_average*
+        local dailyvars `r(varlist)'
 
-        gen n_days = 0
-        foreach v of varlist daily_average* {
-            replace n_days = n_days + !missing(`v')
-        }
+        if "`dailyvars'" != "" {
+            gen total_surveys = 0
+            foreach v of local dailyvars {
+                replace total_surveys = total_surveys + `v'
+            }
 
-        gen avg_per_day = total_surveys / n_days
-        label var total_surveys "Total surveys per enumerator"
-        label var avg_per_day "Average surveys per day"
-        drop n_days
+            gen n_days = 0
+            foreach v of local dailyvars {
+                replace n_days = n_days + !missing(`v')
+            }
+
+            gen avg_per_day = total_surveys / n_days
+            label var total_surveys "Total surveys per enumerator"
+            label var avg_per_day "Average surveys per day"
+            drop n_days
+        }
         // --- End total/average calculation ---
     }
 
