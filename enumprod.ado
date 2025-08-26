@@ -1,6 +1,6 @@
 *! enumprod.ado
 *! Enumerator daily productivity (counts per day by enumerator, exported + shown in Results)
-*! Version 1.1, Author: Sayeed
+*! Version 1.4, Author: Sayeed
 version 17.0
 
 program define enumprod, rclass
@@ -12,7 +12,7 @@ program define enumprod, rclass
     local enum "`enum'"
     local consent "`consent'"
 
-    // check variables exist
+    // Check required variables exist
     foreach v in `start' `sup' `enum' {
         capture confirm variable `v'
         if _rc {
@@ -23,7 +23,7 @@ program define enumprod, rclass
 
     preserve
     quietly {
-        // Convert starttime → daily date
+        // Convert starttime to daily date
         local fmt : format `start'
         local p_tc = strpos("`fmt'","tc")
         local p_td = strpos("`fmt'","td")
@@ -55,42 +55,39 @@ program define enumprod, rclass
             keep if `consent' == 1
         }
 
-        // Keep vars of interest
+        // Keep only relevant variables
         keep `sup' `enum' fielddate
 
-        // Daily counts per enumerator
-        bysort `enum' fielddate: gen daily_average = _N
-        collapse (count) daily_average, by(`sup' `enum' fielddate)
-        reshape wide daily_average, i(`sup' `enum') j(fielddate)
+        // --- Count daily surveys per enumerator ---
+        bysort `enum' fielddate: gen daily_count = _N
 
-        // Rename date columns
-        ds daily_average*
-        local vars `r(varlist)'
-        foreach v of local vars {
-            local d = substr("`v'",14,.)
-            local dlabel : display %tdDDmonCCYY `d'
-            local safe = subinstr("d_`dlabel'"," ","",.)
-            local safe = subinstr("`safe'","/","_",.)
-            local safe = subinstr("`safe'","-","_",.)
+        // Collapse by supervisor + enumerator + date
+        collapse (count) daily_count, by(`sup' `enum' fielddate)
+
+        // Reshape to wide format
+        reshape wide daily_count, i(`sup' `enum') j(fielddate)
+
+        // Rename columns to readable date labels
+        ds daily_count*
+        local oldvars `r(varlist)'
+        local newvars ""
+
+        foreach v of local oldvars {
+            local num = substr("`v'", 12, .)
+            local numval = real("`num'")
+            local dlabel : display %tdDDmonCCYY `numval'
+            local safe = subinstr("d_`dlabel'", " ", "", .)
             rename `v' `safe'
             label var `safe' "`dlabel'"
+            local newvars "`newvars' `safe'"
         }
-    }
 
-    // Show results in Results window
-    di as txt "Enumerator daily productivity:"
-    list, abbrev(20) noobs
+        // Total surveys per enumerator
+        egen total_surveys = rowtotal(`newvars')
+        label var total_surveys "Total surveys"
 
-    // Export to Excel
-    capture noi export excel using "`using'", ///
-        sheet("Daily_survey_by_enum") sheetreplace firstrow(varlabels) cell(A1)
-    if _rc {
-        di as err "enumprod: export failed (rc=`_rc'). Check path/permissions."
-        restore
-        exit 459
-    }
+        // Average surveys per day per enumerator
+        egen avg_per_day = rowmean(`newvars')
+        label var avg_per_day "Avg surveys per day"
 
-    // Keep reshaped dataset in memory (not restoring original)
-    di as txt "enumprod: results also exported to `using'"
-    return local outfile "`using'"
-end
+        // Reorder columns: S
