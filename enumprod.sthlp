@@ -7,7 +7,7 @@ Compute daily survey productivity by enumerator and supervisor, reshape results,
 {title:Syntax}
 
 {p 8 16 2}
-{cmd:enumprod} {it:using filename}, {cmd:starttime(}{it:varname}{cmd:)} {cmd:sup(}{it:varname}{cmd:)} {cmd:enum(}{it:varname}{cmd:)} [{cmd:consent(}{it:varname}{cmd:)}]
+{cmd:enumprod} {it:using filename}, {cmd:starttime(}{it:varname}{cmd:)} {cmd:enum(}{it:varname}{cmd:)} [{cmd:consent(}{it:varname}{cmd:)} {cmd:sup(}{it:varname}{cmd:)}]
 
 {title:Options}
 
