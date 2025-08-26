@@ -1,6 +1,6 @@
 *! enumprod.ado
 *! Enumerator daily productivity (counts per day by enumerator, exported + shown in Results)
-*! Version 1.1, Author: Sayeed
+*! Version 1.2, Author: Sayeed
 version 17.0
 
 program define enumprod, rclass
@@ -12,7 +12,7 @@ program define enumprod, rclass
     local enum "`enum'"
     local consent "`consent'"
 
-    // check variables exist
+    // Check required variables exist
     foreach v in `start' `sup' `enum' {
         capture confirm variable `v'
         if _rc {
@@ -55,15 +55,15 @@ program define enumprod, rclass
             keep if `consent' == 1
         }
 
-        // Keep vars of interest
+        // Keep only relevant variables
         keep `sup' `enum' fielddate
 
-        // Daily counts per enumerator
+        // Generate daily counts per enumerator
         bysort `enum' fielddate: gen daily_average = _N
         collapse (count) daily_average, by(`sup' `enum' fielddate)
         reshape wide daily_average, i(`sup' `enum') j(fielddate)
 
-        // Rename date columns
+        // Rename date columns to readable labels
         ds daily_average*
         local vars `r(varlist)'
         foreach v of local vars {
@@ -75,6 +75,23 @@ program define enumprod, rclass
             rename `v' `safe'
             label var `safe' "`dlabel'"
         }
+
+        // --- New: total and average per enumerator ---
+        gen total_surveys = 0
+        foreach v of varlist daily_average* {
+            replace total_surveys = total_surveys + `v'
+        }
+
+        gen n_days = 0
+        foreach v of varlist daily_average* {
+            replace n_days = n_days + !missing(`v')
+        }
+
+        gen avg_per_day = total_surveys / n_days
+        label var total_surveys "Total surveys per enumerator"
+        label var avg_per_day "Average surveys per day"
+        drop n_days
+        // --- End total/average calculation ---
     }
 
     // Show results in Results window
