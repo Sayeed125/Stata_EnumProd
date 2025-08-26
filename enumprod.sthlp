@@ -18,7 +18,7 @@ Compute daily survey productivity by enumerator and supervisor, reshape results,
   Required. Enumerator variable.
 
 {p 8 16 2}{cmd:sup()}  
-  Required. Supervisor variable.
+  Optional. Supervisor variable.
 
 {p 8 16 2}{cmd:consent()}  
   Optional. If provided, restricts to cases where {cmd:consent==1}.
