@@ -14,11 +14,11 @@ Compute daily survey productivity by enumerator and supervisor, reshape results,
 {p 8 16 2}{cmd:starttime()}  
   Required. DateTime or Date variable marking survey start.
 
-{p 8 16 2}{cmd:sup()}  
-  Required. Supervisor variable.
-
 {p 8 16 2}{cmd:enum()}  
   Required. Enumerator variable.
+
+{p 8 16 2}{cmd:sup()}  
+  Required. Supervisor variable.
 
 {p 8 16 2}{cmd:consent()}  
   Optional. If provided, restricts to cases where {cmd:consent==1}.
