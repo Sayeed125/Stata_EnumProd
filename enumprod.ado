@@ -1,11 +1,12 @@
 *! enumprod.ado
 *! Enumerator daily productivity (counts per day by enumerator, exported + shown in Results)
-*! Version 1.4, Author: Sayeed
+*! Version 1.5, Author: Sayeed
 version 17.0
 
 program define enumprod, rclass
-    // Required options
-    syntax using/, starttime(varname) sup(varname) enum(varname) [consent(varname)]
+    // Required options: starttime and enum
+    // Optional: sup and consent
+    syntax using/, starttime(varname) enum(varname) [sup(varname) consent(varname)]
 
     local start "`starttime'"
     local sup "`sup'"
@@ -13,10 +14,19 @@ program define enumprod, rclass
     local consent "`consent'"
 
     // Check required variables exist
-    foreach v in `start' `sup' `enum' {
+    foreach v in `start' `enum' {
         capture confirm variable `v'
         if _rc {
             di as err "enumprod: variable `v' not found in dataset"
+            exit 198
+        }
+    }
+
+    // Check optional supervisor variable if provided
+    if "`sup'" != "" {
+        capture confirm variable `sup'
+        if _rc {
+            di as err "enumprod: supervisor variable `sup' not found"
             exit 198
         }
     }
@@ -56,16 +66,31 @@ program define enumprod, rclass
         }
 
         // Keep only relevant variables
-        keep `sup' `enum' fielddate
+        if "`sup'" != "" {
+            keep `sup' `enum' fielddate
+        }
+        else {
+            keep `enum' fielddate
+        }
 
         // --- Count daily surveys per enumerator ---
         bysort `enum' fielddate: gen daily_count = _N
 
-        // Collapse by supervisor + enumerator + date
-        collapse (count) daily_count, by(`sup' `enum' fielddate)
+        // Collapse by supervisor + enumerator + date (or just enumerator if sup missing)
+        if "`sup'" != "" {
+            collapse (count) daily_count, by(`sup' `enum' fielddate)
+        }
+        else {
+            collapse (count) daily_count, by(`enum' fielddate)
+        }
 
         // Reshape to wide format
-        reshape wide daily_count, i(`sup' `enum') j(fielddate)
+        if "`sup'" != "" {
+            reshape wide daily_count, i(`sup' `enum') j(fielddate)
+        }
+        else {
+            reshape wide daily_count, i(`enum') j(fielddate)
+        }
 
         // Rename columns to readable date labels
         ds daily_count*
@@ -90,8 +115,13 @@ program define enumprod, rclass
         egen avg_per_day = rowmean(`newvars')
         label var avg_per_day "Avg surveys per day"
 
-        // Reorder columns: Supervisor | Enumerator | Total | Avg | daily dates
-        ds `sup' `enum' total_surveys avg_per_day
+        // Reorder columns
+        if "`sup'" != "" {
+            ds `sup' `enum' total_surveys avg_per_day
+        }
+        else {
+            ds `enum' total_surveys avg_per_day
+        }
         local firstvars `r(varlist)'
 
         ds d_*
