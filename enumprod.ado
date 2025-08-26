@@ -90,4 +90,30 @@ program define enumprod, rclass
         egen avg_per_day = rowmean(`newvars')
         label var avg_per_day "Avg surveys per day"
 
-        // Reorder columns: S
+        // Reorder columns: Supervisor | Enumerator | Total | Avg | daily dates
+        ds `sup' `enum' total_surveys avg_per_day
+        local firstvars `r(varlist)'
+
+        ds d_*
+        local datevars `r(varlist)'
+
+        order `firstvars' `datevars'
+
+        // Show results
+        di as txt "Enumerator daily productivity:"
+        list, abbrev(20) noobs
+
+        // Export to Excel
+        capture noi export excel using "`using'", ///
+            sheet("Daily_survey_by_enum") sheetreplace ///
+            firstrow(varlabels) cell(A1)
+        if _rc {
+            di as err "enumprod: export failed (rc=`_rc'). Check path/permissions."
+            restore
+            exit 459
+        }
+
+        di as txt "enumprod: results also exported to `using'"
+        return local outfile "`using'"
+    }
+end
