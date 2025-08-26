@@ -1,6 +1,6 @@
 * EnumProd Stata package
 * version 1.0
 * files to install:
-enumprod.ado
-enumprod.sthlp
-stata.toc
+f enumprod.ado
+f enumprod.sthlp
+f stata.toc
